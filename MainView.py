@@ -101,6 +101,9 @@ class SortListCtrl(wx.ListCtrl, ColumnSorterMixin, ListCtrlAutoWidthMixin):
       s = self.itemDataMap[index][col]
       if isinstance(s, (int, long)):
          s = datetime.timedelta(seconds=s)
+
+      if col==0:
+         s = s[:-4]
       return s
 
    def OnGetItemAttr(self, item):

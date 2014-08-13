@@ -27,6 +27,7 @@ class MainController:
 
       self.mainWindow.lstPrograms.InsertColumn(0, 'Program Name', width=100)
       self.mainWindow.lstPrograms.InsertColumn(1, 'Total Time Spent')
+      self.mainWindow.SetTitle('Time Tracker!')
 
    def __del__(self):
       self.timer.Stop()
