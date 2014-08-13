@@ -21,7 +21,7 @@ class MainController:
       self.mainWindow.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
       self.mainWindow.Bind(wx.EVT_BUTTON, self.onClear, self.mainWindow.btnClear)
 
-      self.filename = os.path.join(os.path.dirname(__file__), 'fileList.trc')
+      self.filename = ('fileList.trc')
       self.program_buffer = shelve.open(self.filename)
       self.timer.Start(1000)
 
