@@ -12,6 +12,8 @@ EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.POINTER(ctypes.c_int)
 GetWindowText = ctypes.windll.user32.GetWindowTextW
 GetWindowTextLength = ctypes.windll.user32.GetWindowTextLengthW
 IsWindowVisible = ctypes.windll.user32.IsWindowVisible
+win = win32gui
+c = wmi.WMI()
 
 
 class MainController:
@@ -23,10 +25,15 @@ class MainController:
 
       self.filename = ('fileList.trc')
       self.program_buffer = shelve.open(self.filename)
+      if '__tabs__' not in self.program_buffer:
+         self.program_buffer['__tabs__'] = {}
       self.timer.Start(1000)
 
-      self.mainWindow.lstPrograms.InsertColumn(0, 'Program Name', width=100)
+      self.mainWindow.lstPrograms.InsertColumn(0, 'Program Name', width=150)
       self.mainWindow.lstPrograms.InsertColumn(1, 'Total Time Spent')
+
+      self.mainWindow.lstInternet.InsertColumn(0, 'Name of Tab', width=150)
+      self.mainWindow.lstInternet.InsertColumn(1, 'Total Time Spent')
       self.mainWindow.SetTitle('Time Tracker!')
 
    def __del__(self):
@@ -45,9 +52,8 @@ class MainController:
       self.mainWindow.Show()
 
    def grabWindows(self):
-      win = win32gui
       hwnd = win.GetForegroundWindow()
-      c = wmi.WMI()
+      activeWindowTitle = win.GetWindowText(hwnd)
 
       """Get applicatin filename given hwnd."""
       try:
@@ -60,13 +66,21 @@ class MainController:
       else:
          if exe in self.program_buffer:
             self.program_buffer[exe] += 1
+
+            if exe == 'chrome.exe' or exe == 'firefox.exe' or exe == 'iexplore.exe':
+               currentTab = activeWindowTitle
+               if currentTab in self.program_buffer['__tabs__']:
+                  self.program_buffer['__tabs__'][currentTab] += 1
+               else:
+                  self.program_buffer['__tabs__'][currentTab] = 1
          else:
             self.program_buffer[exe] = 1
 
          self.mainWindow.lblProgram.SetLabel('Spent %s in active window: %s' % (datetime.timedelta(seconds=self.program_buffer[exe]), exe[:-4]))
 
-         objs ={}
+         objs = {}
          for key, value in self.program_buffer.items():
+            if key == '__tabs__': continue
             objs[len(objs)] = (key, value)
 
          self.mainWindow.lstPrograms.itemDataMap = objs
@@ -76,11 +90,21 @@ class MainController:
          self.mainWindow.lstPrograms.SortListItems(1, ascending=0)
          self.mainWindow.lstPrograms.Refresh()
 
-         # print self.mainWindow.lstPrograms.itemDataMap
+         objs = {}
+         print self.program_buffer
+         for key, value in self.program_buffer['__tabs__'].items():
+            objs[len(objs)] = (key, value)
+         self.mainWindow.lstInternet.itemDataMap = objs
+         self.mainWindow.lstInternet.itemIndexMap = objs.keys()
+         self.mainWindow.lstInternet.SetItemCount(len(objs))
+
+         self.mainWindow.lstInternet.SortListItems(1, ascending=0)
+         self.mainWindow.lstInternet.Refresh()
 
    def onTimer(self, event):
       self.grabWindows()
 
    def onClear(self, event):
       self.program_buffer.clear()
+      self.program_buffer['__tabs__'] = {}
       self.program_buffer.sync()
