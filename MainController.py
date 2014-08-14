@@ -25,8 +25,10 @@ class MainController:
 
       self.filename = ('fileList.trc')
       self.program_buffer = shelve.open(self.filename)
-      if '__tabs__' not in self.program_buffer:
-         self.program_buffer['__tabs__'] = {}
+      # if '__tabs__' not in self.program_buffer:
+      #    self.program_buffer['__tabs__'] = {}
+      self.filename_tabs = ('tabslist.trc')
+      self.tabs = shelve.open(self.filename_tabs)
       self.timer.Start(1000)
 
       self.mainWindow.lstPrograms.InsertColumn(0, 'Program Name', width=150)
@@ -41,8 +43,11 @@ class MainController:
       self.timer.Destroy()
       self.program_buffer.sync()
       self.program_buffer.close()
-      ret = ctypes.windll.kernel32.SetFileAttributesW(ur'%s' % self.filename, FILE_ATTRIBUTE_HIDDEN)
-      if ret:
+      self.tabs.sync()
+      self.tabs.close()
+      ret1 = ctypes.windll.kernel32.SetFileAttributesW(ur'%s' % self.filename, FILE_ATTRIBUTE_HIDDEN)
+      ret = ctypes.windll.kernel32.SetFileAttributesW(ur'%s' % self.filename_tabs, FILE_ATTRIBUTE_HIDDEN)
+      if ret or ret1:
          print 'attribute set to Hidden'
 
       else:  # return code of zero indicates failure, raise Windows error
@@ -69,18 +74,21 @@ class MainController:
 
             if exe == 'chrome.exe' or exe == 'firefox.exe' or exe == 'iexplore.exe':
                currentTab = activeWindowTitle
-               if currentTab in self.program_buffer['__tabs__']:
-                  self.program_buffer['__tabs__'][currentTab] += 1
+               if currentTab in self.tabs:
+                  self.tabs[currentTab] += 1
                else:
-                  self.program_buffer['__tabs__'][currentTab] = 1
+                  self.tabs[currentTab] = 1
          else:
             self.program_buffer[exe] = 1
 
          self.mainWindow.lblProgram.SetLabel('Spent %s in active window: %s' % (datetime.timedelta(seconds=self.program_buffer[exe]), exe[:-4]))
+         try:
+            self.mainWindow.lblInternet.SetLabel('Spent %s in active tab: %s' % (datetime.timedelta(seconds=self.tabs[activeWindowTitle]), activeWindowTitle))
+         except:
+            pass
 
          objs = {}
          for key, value in self.program_buffer.items():
-            if key == '__tabs__': continue
             objs[len(objs)] = (key, value)
 
          self.mainWindow.lstPrograms.itemDataMap = objs
@@ -91,8 +99,7 @@ class MainController:
          self.mainWindow.lstPrograms.Refresh()
 
          objs = {}
-         print self.program_buffer
-         for key, value in self.program_buffer['__tabs__'].items():
+         for key, value in self.tabs.items():
             objs[len(objs)] = (key, value)
          self.mainWindow.lstInternet.itemDataMap = objs
          self.mainWindow.lstInternet.itemIndexMap = objs.keys()
@@ -106,5 +113,6 @@ class MainController:
 
    def onClear(self, event):
       self.program_buffer.clear()
-      self.program_buffer['__tabs__'] = {}
+      self.tabs.clear()
       self.program_buffer.sync()
+      self.tabs.clear()
