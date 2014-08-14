@@ -86,6 +86,7 @@ class SortListCtrl(wx.ListCtrl, ColumnSorterMixin, ListCtrlAutoWidthMixin):
       self.itemDataMap = {}
       self.itemIndexMap = self.itemDataMap.keys()
       self.lookupDict = {}
+      self.ascending = False
 
       self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
       self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
@@ -93,6 +94,7 @@ class SortListCtrl(wx.ListCtrl, ColumnSorterMixin, ListCtrlAutoWidthMixin):
       self.Bind(wx.EVT_LIST_COL_CLICK, self.OnColClick)
 
    def OnColClick(self, event):
+      self.ascending = not self.ascending
       event.Skip()
 
    def OnItemSelected(self, event):

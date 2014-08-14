@@ -95,7 +95,7 @@ class MainController:
          self.mainWindow.lstPrograms.itemIndexMap = objs.keys()
          self.mainWindow.lstPrograms.SetItemCount(len(objs))
 
-         self.mainWindow.lstPrograms.SortListItems(1, ascending=0)
+         self.mainWindow.lstPrograms.SortListItems(1, ascending=self.mainWindow.lstPrograms.ascending)
          self.mainWindow.lstPrograms.Refresh()
 
          objs = {}
@@ -105,7 +105,7 @@ class MainController:
          self.mainWindow.lstInternet.itemIndexMap = objs.keys()
          self.mainWindow.lstInternet.SetItemCount(len(objs))
 
-         self.mainWindow.lstInternet.SortListItems(1, ascending=0)
+         self.mainWindow.lstInternet.SortListItems(1, ascending=self.mainWindow.lstInternet.ascending)
          self.mainWindow.lstInternet.Refresh()
 
    def onTimer(self, event):
